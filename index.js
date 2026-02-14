@@ -1,42 +1,54 @@
 const express = require('express');
-const app = express();
-const PORT = 3000;
+const sqlite3 = require('sqlite3');
+const { open } = require('sqlite');
 
-// Middleware para que el servidor entienda datos en formato JSON
+const app = express();
 app.use(express.json());
 
-// Base de datos temporal (en memoria)
-// En el futuro, esto será una base de datos real (SQL/NoSQL)
-const urls = {}; 
+let db;
 
-// RUTA 1: Acortar la URL (POST)
-app.post('/shorten', (req, res) => {
-    const { longUrl } = req.body;
-    
-    // Generamos un ID aleatorio simple (esto es ingeniería de sistemas básica)
-    const shortId = Math.random().toString(36).substring(2, 8);
-    
-    // Guardamos la relación en nuestro "diccionario"
-    urls[shortId] = longUrl;
-
-    res.json({
-        message: "URL acortada con éxito",
-        shortUrl: `http://localhost:${PORT}/${shortId}`
+// Conexión a la base de datos (se crea un archivo llamado database.db)
+(async () => {
+    db = await open({
+        filename: './database.db',
+        driver: sqlite3.Database
     });
+    // Crear la tabla si no existe
+    await db.exec(`
+        CREATE TABLE IF NOT EXISTS enlaces (
+            id TEXT PRIMARY KEY,
+            url_original TEXT,
+            clics INTEGER DEFAULT 0
+        )
+    `);
+})();
+
+// RUTA 1: Guardar en la base de datos (POST)
+app.post('/shorten', async (req, res) => {
+    const { longUrl } = req.body;
+    const shortId = Math.random().toString(36).substring(2, 8);
+
+    await db.run(
+        'INSERT INTO enlaces (id, url_original) VALUES (?, ?)',
+        [shortId, longUrl]
+    );
+
+    res.json({ shortUrl: `http://localhost:3000/${shortId}` });
 });
 
-// RUTA 2: Redirección (GET)
-app.get('/:id', (req, res) => {
-    const id = req.params.id;
-    const originalUrl = urls[id];
+// RUTA 2: Redirección y contador de clics (GET)
+app.get('/:id', async (req, res) => {
+    const { id } = req.params;
+    
+    // Buscamos en la DB
+    const enlace = await db.get('SELECT * FROM enlaces WHERE id = ?', [id]);
 
-    if (originalUrl) {
-        return res.redirect(originalUrl);
-    } else {
-        return res.status(404).send("URL no encontrada");
+    if (enlace) {
+        // ACTUALIZACIÓN: Sumamos un clic (Ingeniería de datos básica)
+        await db.run('UPDATE enlaces SET clics = clics + 1 WHERE id = ?', [id]);
+        return res.redirect(enlace.url_original);
     }
+    res.status(404).send("URL no encontrada");
 });
 
-app.listen(PORT, () => {
-    console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
-});
+app.listen(3000, () => console.log("🚀 Motor con persistencia listo en el puerto 3000"));
