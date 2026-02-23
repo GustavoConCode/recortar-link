@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Estadísticas - Mi Acortador</title>
+    <style>
+        body { font-family: sans-serif; padding: 40px; background: #f4f4f9; display: flex; flex-direction: column; align-items: center; }
+        table { border-collapse: collapse; width: 80%; background: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden; }
+        th, td { text-align: left; padding: 12px 15px; border-bottom: 1px solid #ddd; }
+        th { background-color: #007bff; color: white; }
+        tr:hover { background-color: #f1f1f1; }
+        .back-btn { margin-bottom: 20px; text-decoration: none; color: #007bff; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <a href="/" class="back-btn">← Volver al acortador</a>
+    <h1>📊 Panel de Estadísticas</h1>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>URL Original</th>
+                <th>Clicks</th>
+            </tr>
+        </thead>
+        <tbody id="statsTable">
+            </tbody>
+    </table>
+
+    <script>
+        async function cargarEstadisticas() {
+            const response = await fetch('/api/all-stats');
+            const data = await response.json();
+            const tableBody = document.getElementById('statsTable');
+
+            tableBody.innerHTML = data.map(link => `
+                <tr>
+                    <td><strong>${link.id}</strong></td>
+                    <td>${link.url_original.substring(0, 50)}...</td>
+                    <td>🔥 ${link.clics}</td>
+                </tr>
+            `).join('');
+        }
+
+        cargarEstadisticas();
+    </script>
+</body>
+</html>

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Mi Acortador Pro</title>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; padding-top: 50px; background: #f4f4f9; }
+        .card { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 400px; }
+        h1 { color: #333; font-size: 1.5rem; }
+        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        #result { margin-top: 20px; padding: 10px; background: #e9ecef; border-radius: 4px; word-break: break-all; display: none; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h1>✂️ Acortador de URLs</h1>
+    <input type="url" id="longUrl" placeholder="Pega tu URL larga aquí..." required>
+    <button onclick="acortar()">Acortar Enlace</button>
+    
+    <div id="result">
+        <p>Tu enlace corto:</p>
+        <a id="shortLink" href="#" target="_blank"></a>
+    </div>
+<p style="text-align: center; margin-top: 20px;">
+    <a href="/stats.html">Ver todas las estadísticas 📈</a>
+</p>
+</div>
+
+<script>
+    async function acortar() {
+        const urlInput = document.getElementById('longUrl').value;
+        const resultDiv = document.getElementById('result');
+        const shortLink = document.getElementById('shortLink');
+
+        if (!urlInput) return alert("Por favor, pega una URL");
+
+        // Hacemos la petición POST a nuestra propia API
+        const response = await fetch('/shorten', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ longUrl: urlInput })
+        });
+
+        const data = await response.json();
+
+        // Mostramos el resultado
+        shortLink.href = data.shortUrl;
+        shortLink.innerText = data.shortUrl;
+        resultDiv.style.display = 'block';
+    }
+</script>
+
+</body>
+</html>

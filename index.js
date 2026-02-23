@@ -4,6 +4,7 @@ const { open } = require('sqlite');
 
 const app = express();
 app.use(express.json());
+app.use(express.static('public'));
 
 let db;
 
@@ -74,6 +75,15 @@ app.get('/stats/:id', async (req, res) => {
     } catch (error) {
         // Manejo de errores (fundamental en ingeniería)
         res.status(500).json({ error: "Error interno del servidor" });
+    }
+});
+// RUTA 4: Obtener todos los enlaces para la tabla de estadísticas
+app.get('/api/all-stats', async (req, res) => {
+    try {
+        const enlaces = await db.all('SELECT * FROM enlaces ORDER BY clics DESC');
+        res.json(enlaces);
+    } catch (error) {
+        res.status(500).json({ error: "Error al obtener estadísticas" });
     }
 });
 app.listen(3000, () => console.log("🚀 Motor con persistencia listo en el puerto 3000"));
