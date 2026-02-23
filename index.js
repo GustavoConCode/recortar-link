@@ -51,4 +51,29 @@ app.get('/:id', async (req, res) => {
     res.status(404).send("URL no encontrada");
 });
 
+// RUTA 3: Ver estadísticas de un enlace (GET)
+app.get('/stats/:id', async (req, res) => {
+    const { id } = req.params; // Extraemos el ID de la URL
+
+    try {
+        // Buscamos el registro en la base de datos
+        const enlace = await db.get('SELECT * FROM enlaces WHERE id = ?', [id]);
+
+        if (enlace) {
+            // Si existe, respondemos con un objeto JSON profesional
+            res.json({
+                id: enlace.id,
+                url_original: enlace.url_original,
+                clics_totales: enlace.clics,
+                mensaje: "Estadísticas recuperadas con éxito"
+            });
+        } else {
+            // Si el ID no existe en la DB
+            res.status(404).json({ error: "Ese código de enlace no existe." });
+        }
+    } catch (error) {
+        // Manejo de errores (fundamental en ingeniería)
+        res.status(500).json({ error: "Error interno del servidor" });
+    }
+});
 app.listen(3000, () => console.log("🚀 Motor con persistencia listo en el puerto 3000"));
