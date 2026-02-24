@@ -35,7 +35,12 @@ app.post('/shorten', async (req, res) => {
         [shortId, longUrl]
     );
 
-    res.json({ shortUrl: `http://localhost:3000/${shortId}` });
+    // --- REEMPLAZO DESDE AQUÍ ---
+    const host = req.get('host'); 
+    const protocol = req.protocol; 
+
+    res.json({ shortUrl: `${protocol}://${host}/${shortId}` });
+    // --- HASTA AQUÍ ---
 });
 
 // RUTA 2: Redirección y contador de clics (GET)
